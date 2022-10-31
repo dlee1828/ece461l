@@ -7,10 +7,9 @@ app = Flask(__name__, static_url_path='', static_folder='client/build')
 CORS(app)  # comment this on deployment
 api = Api(app)
 
-password = "qx4BnukGCF7NMvGY"
-connection_string = f"mongodb+srv://dlee1828:{password}@cluster0.ah7ruoj.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(connection_string)
-print(client.list_database_names())
+# password = "qx4BnukGCF7NMvGY"
+# connection_string = f"mongodb+srv://dlee1828:{password}@cluster0.ah7ruoj.mongodb.net/?retryWrites=true&w=majority"
+# client = MongoClient(connection_string)
 
 # @app.route('/')
 # def index():
