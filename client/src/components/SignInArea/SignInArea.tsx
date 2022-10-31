@@ -6,12 +6,12 @@ import "./SignInArea.css";
 
 export const SignInArea = () => {
   const [newUser, setNewUser] = useState(false);
-  // const res = await axios.get(`${rootUrl}/test`);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignIn = () => {
-    apiSignIn({ username, password });
+  const handleSignIn = async () => {
+    const res = await apiSignIn({ username, password });
+    alert(res);
   };
 
   const handleSignUp = () => {
