@@ -1,0 +1,4 @@
+.projectBox {
+  display: flex;
+  flex-direction: row;
+}

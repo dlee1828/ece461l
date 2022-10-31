@@ -6,7 +6,9 @@ type ApiSignInArgs = {
   password: string;
 };
 
-export const apiSignIn = async (args: ApiSignInArgs) => {
+export const apiSignIn = async (
+  args: ApiSignInArgs
+): Promise<"user not found" | "success"> => {
   const encodedPassword = encodeURI(args.password);
   const encodedUsername = encodeURIComponent(args.username);
   const res = await axios.get(

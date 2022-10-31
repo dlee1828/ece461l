@@ -1,21 +1,63 @@
-import { Box, Button, Heading, Input } from "@chakra-ui/react";
+import { Box, Button, Heading, Input, useToast } from "@chakra-ui/react";
 import { useState } from "react";
 import { apiSignIn } from "../../api/SignIn";
 import { apiSignUp } from "../../api/SignUp";
 import "./SignInArea.css";
+import { sha256 } from "js-sha256";
 
-export const SignInArea = () => {
+type SignInAreaProps = {
+  onSignIn: (userId: string) => void;
+  onSignOut: () => void;
+};
+
+export const SignInArea = (props: SignInAreaProps) => {
   const [newUser, setNewUser] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const toast = useToast();
 
   const handleSignIn = async () => {
-    const res = await apiSignIn({ username, password });
-    alert(res);
+    const hashedPassword = sha256(password);
+    const res = await apiSignIn({ username, password: hashedPassword });
+    if (res.split(" ")[0] == "success") {
+      toast({
+        title: "Signed In",
+        status: "success",
+        duration: 5000,
+        position: "top-right",
+      });
+      props.onSignIn(res.split(" ")[1]);
+    } else {
+      toast({
+        title: "User Not Found",
+        status: "error",
+        duration: 5000,
+        position: "top-right",
+      });
+      setUsername("");
+      setPassword("");
+    }
   };
 
-  const handleSignUp = () => {
-    apiSignUp({ username, password });
+  const handleSignUp = async () => {
+    const hashedPassword = sha256(password);
+    const res = await apiSignUp({ username, password: hashedPassword });
+    if (res.split(" ")[0] == "success") {
+      toast({
+        title: "Signed Up",
+        status: "success",
+        duration: 5000,
+        position: "top-right",
+      });
+      props.onSignIn(res.split(" ")[1]);
+    } else if (res == "username taken") {
+      toast({
+        title: "Username Taken",
+        status: "error",
+        duration: 5000,
+        position: "top-right",
+      });
+    }
   };
 
   return (
@@ -34,6 +76,7 @@ export const SignInArea = () => {
           placeholder={(newUser ? "Create a " : "") + "Username"}
         ></Input>
         <Input
+          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={(newUser ? "Create a " : "") + "Password"}

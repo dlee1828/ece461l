@@ -14,6 +14,7 @@ client = MongoClient(connection_string)
 
 db = client['ece461l-database']
 users_collection = db['users']
+projects_collection = db['projects']
 
 
 @app.route("/", defaults={'path': ''})
@@ -36,7 +37,8 @@ def sign_in():
     if res == None:
         return "user not found"
     else:
-        return "successful sign in"
+        id = res.get('_id')
+        return f"success {id}"
 
 
 @app.route('/signUp')
@@ -50,8 +52,34 @@ def sign_up():
         "password": password
     }
 
-    users_collection.insert_one(user)
+    # Check if username is taken
+    taken = users_collection.count_documents({'username': username})
+    if taken > 0:
+        return "username taken"
+    else:
+        users_collection.insert_one(user)
+        user = users_collection.find_one(user)
+        id = user.get('_id')
+        return f"success {id}"
 
-    return "yeah"
+
+@app.route("/createProject")
+def create_project():
+    args = request.args
+    name = urllib.parse.unquote(args['name'])
+    description = urllib.parse.unquote(args['description'])
+    project = {
+        'name': name,
+        'description': description,
+        'users': []
+    }
+    projects_collection.insert_one(project)
+    return 'success'
+
+
+@app.route('/getProjects')
+def get_projects():
+    for x in projects_collection:
+        print(x)
 
 # Maybe this? ? a change
