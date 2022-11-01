@@ -8,7 +8,7 @@ import bson.json_util as json_util
 from bson.objectid import ObjectId
 
 app = Flask(__name__, static_url_path='', static_folder='client/build')
-CORS(app)  # comment this on deployment
+cors = CORS(app)  # comment this on deployment
 api = Api(app)
 
 password = "qx4BnukGCF7NMvGY"
@@ -18,6 +18,7 @@ client = MongoClient(connection_string)
 db = client['ece461l-database']
 users_collection = db['users']
 projects_collection = db['projects']
+resources_collection = db['resources']
 
 
 @app.route("/", defaults={'path': ''})
@@ -27,6 +28,7 @@ def serve(path):
 
 @app.route('/signIn')
 def sign_in():
+    print("got here")
     args = request.args
     username = urllib.parse.unquote(args['username'])
     password = urllib.parse.unquote(args['password'])
@@ -76,7 +78,18 @@ def create_project():
         'description': description,
         'users': []
     }
-    projects_collection.insert_one(project)
+    projectId = projects_collection.insert_one(project).inserted_id
+
+    # Create resources for project
+    # Assuming all capacities = 100
+    resources_dict = {
+        'projectId': projectId,
+        'hwset1': 100,
+        'hwset2': 100
+    }
+
+    resources_collection.insert_one(resources_dict)
+
     return 'success'
 
 
@@ -136,4 +149,31 @@ def get_usernames_from_ids():
             usernames.append(username)
     return json.dumps(usernames)
 
-# Maybe this? ? a change
+
+@app.route('/getProjectResources')
+def get_project_resources():
+    args = request.args
+    projectId = urllib.parse.unquote(args['projectId'])
+    resources = resources_collection.find_one(
+        {'projectId': ObjectId(projectId)})
+    to_return = {
+        'hwset1': resources['hwset1'],
+        'hwset2': resources['hwset2']
+    }
+    return json.dumps(to_return)
+
+
+@app.route('/updateResources')
+def update_resources():
+    args = request.args
+    projectId = urllib.parse.unquote(args['projectId'])
+    hwset = urllib.parse.unquote(args['hwset'])
+    newCount = urllib.parse.unquote(args['newCount'])
+    if hwset == 'hwset1':
+        resources_collection.update_one({'projectId': ObjectId(projectId)}, {
+                                        '$set': {'hwset1': newCount}})
+    elif hwset == 'hwset2':
+        resources_collection.update_one({'projectId': ObjectId(projectId)}, {
+                                        '$set': {'hwset2': newCount}})
+
+    return 'success'

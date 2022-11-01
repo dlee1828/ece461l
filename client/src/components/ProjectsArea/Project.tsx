@@ -4,7 +4,7 @@ import { apiGetUsernamesFromIds } from "../../api/GetUsernamesFromIds";
 import { apiJoinProject } from "../../api/JoinProject";
 import { apiLeaveProject } from "../../api/LeaveProject";
 import { ProjectType } from "../../models";
-import "./ProjectsArea.css";
+import { ProjectResources } from "./ProjectResources";
 
 export const Project = (props: {
   userId: string;
@@ -13,6 +13,7 @@ export const Project = (props: {
 }) => {
   const project = props.project;
   const [usernames, setUsernames] = useState<string>("");
+  const [viewingResources, setViewingResources] = useState(false);
 
   useEffect(() => {
     getUsersString();
@@ -49,28 +50,42 @@ export const Project = (props: {
   };
 
   return (
-    <Box
-      borderWidth="1px"
-      p="25px"
-      borderRadius="25px"
-      shadow="md"
-      className="projectBox"
-      w="1000px"
-      gap="20px"
-    >
-      <Box w="100px">{project.name}</Box>
-      <Box w="300px">{project.description}</Box>
-      <Box w="200px">{usernames}</Box>
-      {project.users.includes(props.userId) ? (
-        <Button w="80px" colorScheme="red" onClick={handleClickedLeave}>
-          Leave
-        </Button>
+    <>
+      {!viewingResources ? (
+        <Box
+          borderWidth="1px"
+          p="25px"
+          borderRadius="25px"
+          shadow="md"
+          className="projectBox"
+          w="1000px"
+          gap="20px"
+          display="flex"
+          flexDir="row"
+          alignItems="center"
+        >
+          <Box w="100px">{project.name}</Box>
+          <Box w="300px">{project.description}</Box>
+          <Box w="200px">{usernames}</Box>
+          {project.users.includes(props.userId) ? (
+            <Button w="80px" colorScheme="red" onClick={handleClickedLeave}>
+              Leave
+            </Button>
+          ) : (
+            <Button w="80px" colorScheme="blue" onClick={handleClickedJoin}>
+              Join
+            </Button>
+          )}
+          <Button onClick={() => setViewingResources(true)}>
+            View Resources
+          </Button>
+        </Box>
       ) : (
-        <Button w="80px" colorScheme="blue" onClick={handleClickedJoin}>
-          Join
-        </Button>
+        <ProjectResources
+          onBack={() => setViewingResources(false)}
+          projectId={project.id}
+        ></ProjectResources>
       )}
-      <Button>View Resources</Button>
-    </Box>
+    </>
   );
 };

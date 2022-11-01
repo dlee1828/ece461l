@@ -96,6 +96,7 @@ export const ProjectsArea = (props: ProjectsAreaProps) => {
               key={index}
             ></Project>
           ))}
+          <Button onClick={() => window.location.reload()}>Log Out</Button>
         </Box>
       )}
     </>

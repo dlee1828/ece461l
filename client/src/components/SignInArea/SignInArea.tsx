@@ -35,47 +35,64 @@ export const SignInArea = (props: SignInAreaProps) => {
     };
   }, [username, password]);
 
+  const toastError = (message: string) => {
+    toast({
+      title: message,
+      status: "error",
+      duration: 5000,
+      position: "top-right",
+    });
+  };
+  const toastSuccess = (message: string) => {
+    toast({
+      title: message,
+      status: "success",
+      duration: 5000,
+      position: "top-right",
+    });
+  };
+
+  const checkFieldFilled = (): boolean => {
+    if (username == "") {
+      toastError("Please enter your username");
+      return false;
+    }
+    if (password == "") {
+      toastError("Please enter your password");
+      return false;
+    }
+    return true;
+  };
+
   const handleSignIn = async () => {
+    if (!checkFieldFilled()) {
+      return;
+    }
+
     const hashedPassword = sha256(password);
     const res = await apiSignIn({ username, password: hashedPassword });
     if (res.split(" ")[0] == "success") {
-      toast({
-        title: "Signed In",
-        status: "success",
-        duration: 5000,
-        position: "top-right",
-      });
+      toastSuccess("Signed in.");
       props.onSignIn(res.split(" ")[1]);
     } else {
-      toast({
-        title: "User Not Found",
-        status: "error",
-        duration: 5000,
-        position: "top-right",
-      });
+      toastError("User not found.");
       setUsername("");
       setPassword("");
     }
   };
 
   const handleSignUp = async () => {
+    if (!checkFieldFilled()) {
+      return;
+    }
+
     const hashedPassword = sha256(password);
     const res = await apiSignUp({ username, password: hashedPassword });
     if (res.split(" ")[0] == "success") {
-      toast({
-        title: "Signed Up",
-        status: "success",
-        duration: 5000,
-        position: "top-right",
-      });
+      toastSuccess("Signed Up");
       props.onSignIn(res.split(" ")[1]);
     } else if (res == "username taken") {
-      toast({
-        title: "Username Taken",
-        status: "error",
-        duration: 5000,
-        position: "top-right",
-      });
+      toastError("Username taken");
     }
   };
 
