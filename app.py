@@ -3,6 +3,9 @@ from flask_restful import Api, Resource, reqparse
 from flask_cors import CORS
 from pymongo import MongoClient  # comment this on deployment
 import urllib.parse
+import json
+import bson.json_util as json_util
+from bson.objectid import ObjectId
 
 app = Flask(__name__, static_url_path='', static_folder='client/build')
 CORS(app)  # comment this on deployment
@@ -77,9 +80,60 @@ def create_project():
     return 'success'
 
 
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
+
+
 @app.route('/getProjects')
 def get_projects():
-    for x in projects_collection:
-        print(x)
+    num_projects = projects_collection.count_documents({})
+    if num_projects == 0:
+        return "no projects"
+    projects_list = []
+    for x in projects_collection.find({}):
+        projects_list.append(x)
+    projects_list_string = parse_json(projects_list)
+    return projects_list_string
+
+
+@app.route('/joinProject')
+def join_project():
+    args = request.args
+    userId = urllib.parse.unquote(args['userId'])
+    projectId = urllib.parse.unquote(args['projectId'])
+    doc = projects_collection.find_one({'_id': ObjectId(projectId)})
+    if userId not in doc['users']:
+        doc['users'].append(userId)
+    projects_collection.update_one({'_id': ObjectId(projectId)}, {'$set': doc})
+    return "success"
+
+
+@app.route('/leaveProject')
+def leave_project():
+    args = request.args
+    userId = urllib.parse.unquote(args['userId'])
+    projectId = urllib.parse.unquote(args['projectId'])
+    doc = projects_collection.find_one({'_id': ObjectId(projectId)})
+    if userId in doc['users']:
+        doc['users'].remove(userId)
+    projects_collection.update_one({'_id': ObjectId(projectId)}, {'$set': doc})
+    return "success"
+
+
+@app.route('/getUsernamesFromIds')
+def get_usernames_from_ids():
+    args = request.args
+    string = urllib.parse.unquote(args['ids'])
+    ids = json.loads(string)
+    usernames = []
+    count = users_collection.count_documents(
+        {"_id": {"$in": [ObjectId(id) for id in ids]}})
+    if count > 0:
+        docs = users_collection.find(
+            {"_id": {"$in": [ObjectId(id) for id in ids]}})
+        for doc in docs:
+            username = doc['username']
+            usernames.append(username)
+    return json.dumps(usernames)
 
 # Maybe this? ? a change

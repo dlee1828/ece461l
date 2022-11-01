@@ -1,5 +1,5 @@
 import { Box, Button, Heading, Input, useToast } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiSignIn } from "../../api/SignIn";
 import { apiSignUp } from "../../api/SignUp";
 import "./SignInArea.css";
@@ -15,6 +15,25 @@ export const SignInArea = (props: SignInAreaProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const toast = useToast();
+
+  useEffect(() => {
+    const keyDownHandler = async (event: any) => {
+      if (event.key === "Enter") {
+        if (newUser) {
+          await handleSignUp();
+        } else {
+          await handleSignIn();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", keyDownHandler);
+
+    // 👇️ clean up event listener
+    return () => {
+      document.removeEventListener("keydown", keyDownHandler);
+    };
+  }, [username, password]);
 
   const handleSignIn = async () => {
     const hashedPassword = sha256(password);

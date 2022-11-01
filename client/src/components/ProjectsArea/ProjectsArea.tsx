@@ -1,8 +1,11 @@
 import { Box, Button, Input, useToast } from "@chakra-ui/react";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiCreateProject } from "../../api/CreateProject";
+import { apiGetProjects } from "../../api/GetProjects";
 import { rootUrl } from "../../data";
+import { ProjectType } from "../../models";
+import { Project } from "./Project";
 
 type ProjectsAreaProps = {
   userId: string;
@@ -12,6 +15,21 @@ export const ProjectsArea = (props: ProjectsAreaProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const toast = useToast();
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+
+  const fetchProjects = async () => {
+    const result = await apiGetProjects();
+    // const projectsObj = JSON.parse(projectsString);
+    if (result == "no projects") {
+      return;
+    } else {
+      setProjects(result);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   const handleCreate = async () => {
     const res = await apiCreateProject({ name, description });
@@ -25,13 +43,20 @@ export const ProjectsArea = (props: ProjectsAreaProps) => {
       setIsCreatingNewProject(false);
       setName("");
       setDescription("");
+      fetchProjects();
     }
   };
 
   return (
     <>
       {isCreatingNewProject ? (
-        <Box display="flex" flexFlow="column" borderWidth="md">
+        <Box
+          mt="50px"
+          gap="25px"
+          display="flex"
+          flexFlow="column"
+          borderWidth="md"
+        >
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -53,9 +78,25 @@ export const ProjectsArea = (props: ProjectsAreaProps) => {
           </Button>
         </Box>
       ) : (
-        <Button onClick={() => setIsCreatingNewProject(true)}>
-          Create New Project
-        </Button>
+        <Box
+          mt="50px"
+          display="flex"
+          flexDir="column"
+          gap="25px"
+          alignItems="center"
+        >
+          <Button onClick={() => setIsCreatingNewProject(true)}>
+            Create New Project
+          </Button>
+          {projects.map((project, index) => (
+            <Project
+              onRefetch={fetchProjects}
+              userId={props.userId}
+              project={project}
+              key={index}
+            ></Project>
+          ))}
+        </Box>
       )}
     </>
   );

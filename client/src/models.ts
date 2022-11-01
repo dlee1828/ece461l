@@ -11,5 +11,6 @@ export type ResourcesType = {
 export type ProjectType = {
   name: string;
   description: string;
-  users: string[];
+  users: string[]; // Id, not username
+  id: string;
 };
