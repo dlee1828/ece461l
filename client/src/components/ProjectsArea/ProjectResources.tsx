@@ -65,12 +65,14 @@ export const ProjectResources = (props: ProjectResourcesProps) => {
           name="HWSet1"
           count={resources.hwset1}
           onChangeCount={(change) => handleChangeCount(change, "hwset1")}
+          usage={usage}
         ></HardwareSet>
         <HardwareSet
           projectId={props.projectId}
           name="HWSet2"
           count={resources.hwset2}
           onChangeCount={(change) => handleChangeCount(change, "hwset2")}
+          usage={usage}
         ></HardwareSet>
       </Box>
       <Box>Usage: {usage}</Box>

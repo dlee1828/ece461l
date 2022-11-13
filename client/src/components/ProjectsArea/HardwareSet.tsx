@@ -7,6 +7,7 @@ export const HardwareSet = (props: {
   count: number;
   onChangeCount: (change: number) => Promise<void>;
   projectId: string;
+  usage: number;
 }) => {
   const count = props.count;
 
@@ -51,7 +52,7 @@ export const HardwareSet = (props: {
     const change = parseInt(text);
     const newCount: number = count + change;
 
-    if (newCount < 0) {
+    if (props.usage - change < 0) {
       toastError("Exceeds usage.");
       return;
     }
