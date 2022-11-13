@@ -44,6 +44,10 @@ export const HardwareSet = (props: {
       toastError("Please enter an integer.");
       return;
     }
+    if (parseInt(text) < 0) {
+      toastError("Please enter a positive integer.");
+      return;
+    }
     const change = parseInt(text);
     const newCount: number = count + change;
 
@@ -60,6 +64,10 @@ export const HardwareSet = (props: {
   const handleClickedCheckOut = async () => {
     if (!isInteger(text)) {
       toastError("Please enter an integer.");
+      return;
+    }
+    if (parseInt(text) < 0) {
+      toastError("Please enter a positive integer.");
       return;
     }
     const change = -1 * parseInt(text);
