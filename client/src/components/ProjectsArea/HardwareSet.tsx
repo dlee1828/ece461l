@@ -51,6 +51,11 @@ export const HardwareSet = (props: {
     const change = parseInt(text);
     const newCount: number = count + change;
 
+    if (newCount < 0) {
+      toastError("Exceeds usage.");
+      return;
+    }
+
     if (newCount > 100) {
       toastError("Exceeds capacity.");
       return;
