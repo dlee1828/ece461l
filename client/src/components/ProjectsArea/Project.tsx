@@ -10,10 +10,11 @@ export const Project = (props: {
   userId: string;
   project: ProjectType;
   onRefetch: () => Promise<void>;
+  viewingResources: boolean;
+  setViewingResources: (val: boolean) => void;
 }) => {
   const project = props.project;
   const [usernames, setUsernames] = useState<string>("");
-  const [viewingResources, setViewingResources] = useState(false);
 
   useEffect(() => {
     getUsersString();
@@ -51,7 +52,7 @@ export const Project = (props: {
 
   return (
     <>
-      {!viewingResources ? (
+      {!props.viewingResources ? (
         <Box
           borderWidth="1px"
           p="25px"
@@ -67,7 +68,7 @@ export const Project = (props: {
           <Box w="100px">{project.name}</Box>
           <Box w="300px">{project.description}</Box>
           <Box w="200px">{usernames}</Box>
-          {project.users.includes(props.userId) ? (
+          {/* {project.users.includes(props.userId) ? (
             <Button w="80px" colorScheme="red" onClick={handleClickedLeave}>
               Leave
             </Button>
@@ -75,14 +76,14 @@ export const Project = (props: {
             <Button w="80px" colorScheme="blue" onClick={handleClickedJoin}>
               Join
             </Button>
-          )}
-          <Button onClick={() => setViewingResources(true)}>
+          )} */}
+          <Button onClick={() => props.setViewingResources(true)}>
             View Resources
           </Button>
         </Box>
       ) : (
         <ProjectResources
-          onBack={() => setViewingResources(false)}
+          onBack={() => props.setViewingResources(false)}
           projectId={project.id}
         ></ProjectResources>
       )}

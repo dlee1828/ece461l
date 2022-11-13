@@ -5,7 +5,7 @@ import { Box, Button, Input, useToast } from "@chakra-ui/react";
 export const HardwareSet = (props: {
   name: string;
   count: number;
-  onChangeCount: (newCount: number) => Promise<void>;
+  onChangeCount: (change: number) => Promise<void>;
   projectId: string;
 }) => {
   const count = props.count;
@@ -44,15 +44,15 @@ export const HardwareSet = (props: {
       toastError("Please enter an integer.");
       return;
     }
-    const newCount: number = count + parseInt(text);
+    const change = parseInt(text);
+    const newCount: number = count + change;
 
     if (newCount > 100) {
-      console.log("HERE?");
       toastError("Exceeds capacity.");
       return;
     }
 
-    await props.onChangeCount(newCount);
+    await props.onChangeCount(change);
     setText("");
     toastSuccess(`Checked in ${parseInt(text)} units.`);
   };
@@ -62,13 +62,14 @@ export const HardwareSet = (props: {
       toastError("Please enter an integer.");
       return;
     }
-    const newCount = count - parseInt(text);
+    const change = -1 * parseInt(text);
+    const newCount = count + change;
     if (newCount < 0) {
       toastError("Quantity requested exceeds quantity available.");
       return;
     }
 
-    await props.onChangeCount(newCount);
+    await props.onChangeCount(change);
     setText("");
     toastSuccess(`Checked out ${parseInt(text)} units.`);
   };

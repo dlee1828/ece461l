@@ -19,6 +19,7 @@ db = client['ece461l-database']
 users_collection = db['users']
 projects_collection = db['projects']
 resources_collection = db['resources']
+total_resources_collection = db['total-resources']
 
 
 @app.route("/", defaults={'path': ''})
@@ -73,10 +74,11 @@ def create_project():
     args = request.args
     name = urllib.parse.unquote(args['name'])
     description = urllib.parse.unquote(args['description'])
+    users = json.loads(urllib.parse.unquote(args['ids']))
     project = {
         'name': name,
         'description': description,
-        'users': []
+        'users': users
     }
     projectId = projects_collection.insert_one(project).inserted_id
 
@@ -84,8 +86,7 @@ def create_project():
     # Assuming all capacities = 100
     resources_dict = {
         'projectId': projectId,
-        'hwset1': 100,
-        'hwset2': 100
+        'usage': 0,
     }
 
     resources_collection.insert_one(resources_dict)
@@ -99,11 +100,16 @@ def parse_json(data):
 
 @app.route('/getProjects')
 def get_projects():
-    num_projects = projects_collection.count_documents({})
+    args = request.args
+    userId = urllib.parse.unquote(args['userId'])
+    num_projects = projects_collection.count_documents(
+        {'users': userId})
     if num_projects == 0:
+        print("NO PROJECTS FOUND")
+        print("USERID: ", userId)
         return "no projects"
     projects_list = []
-    for x in projects_collection.find({}):
+    for x in projects_collection.find({'users': userId}):
         projects_list.append(x)
     projects_list_string = parse_json(projects_list)
     return projects_list_string
@@ -156,10 +162,7 @@ def get_project_resources():
     projectId = urllib.parse.unquote(args['projectId'])
     resources = resources_collection.find_one(
         {'projectId': ObjectId(projectId)})
-    to_return = {
-        'hwset1': resources['hwset1'],
-        'hwset2': resources['hwset2']
-    }
+    to_return = resources['usage']
     return json.dumps(to_return)
 
 
@@ -168,12 +171,31 @@ def update_resources():
     args = request.args
     projectId = urllib.parse.unquote(args['projectId'])
     hwset = urllib.parse.unquote(args['hwset'])
-    newCount = urllib.parse.unquote(args['newCount'])
+    change = int(urllib.parse.unquote(args['change']))
+    resources_collection.update_one({'projectId': ObjectId(projectId)}, {
+                                    '$inc': {'usage': -1 * change}})
+
     if hwset == 'hwset1':
-        resources_collection.update_one({'projectId': ObjectId(projectId)}, {
-                                        '$set': {'hwset1': newCount}})
+        total_resources_collection.update_one({}, {'$inc': {'hwset1': change}})
     elif hwset == 'hwset2':
-        resources_collection.update_one({'projectId': ObjectId(projectId)}, {
-                                        '$set': {'hwset2': newCount}})
+        total_resources_collection.update_one({}, {'$inc': {'hwset2': change}})
 
     return 'success'
+
+
+@app.route('/getAllUsers')
+def get_all_users():
+    users_list = []
+    for x in users_collection.find({}):
+        users_list.append(
+            {'id': str(x['_id']), 'username': x['username']})
+    return json.dumps(users_list)
+
+
+@app.route('/getResources')
+def get_resources():
+    res = total_resources_collection.find_one({})
+    return json.dumps({'hwset1': res['hwset1'], 'hwset2': res['hwset2']})
+
+
+total_resources_collection.insert_one({'hwset1': 100, 'hwset2': 100})

@@ -1,6 +1,7 @@
 import { Box, Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { apiGetProjectResources } from "../../api/GetProjectResources";
+import { apiGetResources } from "../../api/GetResources";
 import { apiUpdateResources } from "../../api/UpdateResources";
 import { ProjectResourcesType } from "../../models";
 import { HardwareSet } from "./HardwareSet";
@@ -12,17 +13,21 @@ type ProjectResourcesProps = {
 
 export const ProjectResources = (props: ProjectResourcesProps) => {
   const [resources, setResources] = useState<ProjectResourcesType | null>(null);
+  const [usage, setUsage] = useState<number | 0>(0);
 
-  const fetchProjectResources = async () => {
+  const fetchUsage = async () => {
     const res = await apiGetProjectResources(props.projectId);
-    setResources({
-      hwset1: parseInt(res.hwset1),
-      hwset2: parseInt(res.hwset2),
-    });
+    setUsage(res);
+  };
+
+  const fetchResources = async () => {
+    const res = await apiGetResources();
+    setResources(res);
   };
 
   useEffect(() => {
-    fetchProjectResources();
+    fetchUsage();
+    fetchResources();
   }, []);
 
   if (!resources) {
@@ -30,15 +35,16 @@ export const ProjectResources = (props: ProjectResourcesProps) => {
   }
 
   const handleChangeCount = async (
-    newCount: number,
+    change: number,
     set: "hwset1" | "hwset2"
   ) => {
     await apiUpdateResources({
       hwset: set,
-      newCount,
+      change,
       projectId: props.projectId,
     });
-    await fetchProjectResources();
+    await fetchUsage();
+    await fetchResources();
   };
 
   return (
@@ -58,15 +64,16 @@ export const ProjectResources = (props: ProjectResourcesProps) => {
           projectId={props.projectId}
           name="HWSet1"
           count={resources.hwset1}
-          onChangeCount={(newCount) => handleChangeCount(newCount, "hwset1")}
+          onChangeCount={(change) => handleChangeCount(change, "hwset1")}
         ></HardwareSet>
         <HardwareSet
           projectId={props.projectId}
           name="HWSet2"
           count={resources.hwset2}
-          onChangeCount={(newCount) => handleChangeCount(newCount, "hwset2")}
+          onChangeCount={(change) => handleChangeCount(change, "hwset2")}
         ></HardwareSet>
       </Box>
+      <Box>Usage: {usage}</Box>
       <Button onClick={props.onBack}>Done</Button>
     </Box>
   );
